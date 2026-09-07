@@ -1,0 +1,153 @@
+name: Wingstar Public Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (example: v0.1.0)'
+        required: false
+        default: 'v0.1.0'
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Create Android platform
+        run: flutter create --org com.wingstar --project-name wingstar --platforms=android .
+      - name: Patch permissions
+        run: python3 tool/patch_native.py
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-warnings --no-fatal-infos
+      - name: Build universal APK
+        run: flutter build apk --release
+      - name: Rename APK
+        run: cp build/app/outputs/flutter-apk/app-release.apk Wingstar-Android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-android
+          path: Wingstar-Android.apk
+
+  windows:
+    name: Windows x64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Create Windows platform
+        run: flutter create --org com.wingstar --project-name wingstar --platforms=windows .
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-warnings --no-fatal-infos
+      - run: flutter build windows --release
+      - name: Package Windows bundle
+        shell: powershell
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath Wingstar-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: Wingstar-Windows-x64.zip
+
+  linux:
+    name: Linux x64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install Linux build dependencies
+        run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+      - name: Create Linux platform
+        run: flutter create --org com.wingstar --project-name wingstar --platforms=linux .
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-warnings --no-fatal-infos
+      - run: flutter build linux --release
+      - name: Package Linux bundle
+        run: tar -C build/linux/x64/release/bundle -czf Wingstar-Linux-x64.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: Wingstar-Linux-x64.tar.gz
+
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Create macOS platform
+        run: flutter create --org com.wingstar --project-name wingstar --platforms=macos .
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-warnings --no-fatal-infos
+      - run: flutter build macos --release
+      - name: Package macOS app
+        run: ditto -c -k --sequesterRsrc --keepParent build/macos/Build/Products/Release/wingstar.app Wingstar-macOS.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: Wingstar-macOS.zip
+
+  publish:
+    name: Publish public download release
+    needs: [android, windows, linux, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+      - name: Resolve release tag
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ github.event.inputs.version }}" ]]; then
+            echo "tag=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=v0.1.${GITHUB_RUN_NUMBER}-preview" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Wingstar ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          body: |
+            ## Wingstar 다운로드
+            - **Android:** `Wingstar-Android.apk`
+            - **Windows:** `Wingstar-Windows-x64.zip`
+            - **Linux:** `Wingstar-Linux-x64.tar.gz`
+            - **macOS:** `Wingstar-macOS.zip`
+            - **iPhone/iPad:** Apple 서명 및 TestFlight/App Store 배포가 별도로 필요합니다.
+
+            설치가 끝난 뒤에는 브라우저 없이 독립 앱으로 실행됩니다.
+
+            **WALK FOR ME, WALK FOR EARTH.**
+          files: |
+            dist/Wingstar-Android.apk
+            dist/Wingstar-Windows-x64.zip
+            dist/Wingstar-Linux-x64.tar.gz
+            dist/Wingstar-macOS.zip
