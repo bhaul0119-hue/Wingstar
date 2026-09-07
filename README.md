@@ -24,4 +24,15 @@ Android APK/AAB · iPhone/iPad · Windows · macOS · Linux
 
 브라우저 버전은 의도적으로 제외하며 설치 후에는 독립 네이티브 앱으로 실행합니다.
 
-공개 릴리스는 **Actions → Wingstar Public Release**에서 만들 수 있습니다.
+## 공개 다운로드
+빌드가 완료되면 아래 Releases 페이지에서 기기별 설치 파일을 받을 수 있습니다.
+
+- Android: `Wingstar-Android.apk`
+- Windows: `Wingstar-Windows-x64.zip`
+- macOS: `Wingstar-macOS.zip`
+- Linux: `Wingstar-Linux-x64.tar.gz`
+- iPhone/iPad: Apple 서명 및 TestFlight/App Store 배포 필요
+
+Releases: https://github.com/bhaul0119-hue/Wingstar/releases
+
+공개 릴리스는 **Actions → Wingstar Public Release**에서도 수동으로 다시 만들 수 있습니다.
