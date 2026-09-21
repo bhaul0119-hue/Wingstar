@@ -1,0 +1,32 @@
+{
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "filename": "moran_flower_challenge.mp4"
+  },
+  "style": {
+    "background": "#111111",
+    "text_color": "#FFFFFF",
+    "accent_color": "#E8C7D0",
+    "font_size": 74,
+    "small_font_size": 42,
+    "transition": "fade",
+    "transition_duration": 0.18,
+    "image_zoom": 1.04
+  },
+  "audio": {
+    "file": "assets/audio.mp3",
+    "volume": 1.0
+  },
+  "clips": [
+    {"image": null, "duration": 1.4, "text": "너는 무슨 꽃 같아?", "position": "center"},
+    {"image": "assets/flowers/01_rose.jpg", "duration": 1.1, "text": "RED ROSE", "position": "bottom"},
+    {"image": "assets/flowers/02_black_rose.jpg", "duration": 1.1, "text": "BLACK ROSE", "position": "bottom"},
+    {"image": "assets/flowers/03_lily.jpg", "duration": 1.1, "text": "LILY", "position": "bottom"},
+    {"image": "assets/flowers/04_camelia.jpg", "duration": 1.1, "text": "CAMELLIA", "position": "bottom"},
+    {"image": "assets/flowers/05_peony.jpg", "duration": 1.1, "text": "PEONY", "position": "bottom"},
+    {"image": "assets/flowers/06_moran.jpg", "duration": 1.25, "text": "牡丹", "position": "center"},
+    {"image": "assets/final/moran.jpg", "duration": 2.2, "text": "아니, 모란인데?", "position": "bottom"}
+  ]
+}
